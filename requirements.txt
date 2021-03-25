@@ -1,0 +1,7 @@
+black
+pylint
+pandas
+pytest
+numpy
+tabulate
+matplotlib
