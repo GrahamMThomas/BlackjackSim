@@ -1,4 +1,3 @@
-from numpy import split
 import pytest
 from lib.cards.blackjack_hand import BlackjackHand
 from lib.cards.card import Card
@@ -8,9 +7,7 @@ from lib.cards.card_suit import CardSuit
 
 @pytest.fixture()
 def soft_hand():
-    return BlackjackHand(
-        [Card(CardValue.Ace, CardSuit.Spades), Card(CardValue.Six, CardSuit.Spades)], 27
-    )
+    return BlackjackHand([Card(CardValue.Ace, CardSuit.Spades), Card(CardValue.Six, CardSuit.Spades)], 27)
 
 
 @pytest.fixture()

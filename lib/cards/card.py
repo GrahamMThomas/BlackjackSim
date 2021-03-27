@@ -17,7 +17,7 @@ class Card:
         return f"Card<{CardValue(self.value)}{CardSuit(self.suit)}>"
 
     def __str__(self):
-        return f"{CardValue(self.value)}{CardSuit(self.suit)}"
+        return f"{str(CardValue(self.value))}{CardSuit(self.suit)}"
 
     def is_face_card(self):
         return self.value >= CardValue.Jack

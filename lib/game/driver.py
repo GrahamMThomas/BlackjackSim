@@ -3,6 +3,7 @@ from lib.game.player import NoMoneyBucko, Player
 from lib.cards.shoe import Shoe
 from lib.strategies.house_strategy import HouseStrategy
 from lib.game.blackjack_action import BlackjackAction
+from lib.config.ruleset import Ruleset
 from typing import List, Tuple
 from tabulate import tabulate
 
@@ -51,6 +52,7 @@ class GameDriver:
                 BlackjackAction.Double,
                 BlackjackAction.Stay,
                 BlackjackAction.Bust,
+                BlackjackAction.Surrender,
             ]:
                 finished_hands.append((player, hand))
 
@@ -63,9 +65,7 @@ class GameDriver:
         for player in self.players:
             player.record_money_value()
 
-    def render_action(
-        self, player: Player, hand: BlackjackHand, action: BlackjackAction
-    ):
+    def render_action(self, player: Player, hand: BlackjackHand, action: BlackjackAction):
         if action == BlackjackAction.Hit:
             card = self.shoe.deal_card()
             hand.hit(card)
@@ -88,15 +88,15 @@ class GameDriver:
             pass
         elif action == BlackjackAction.Bust:
             pass
+        elif action == BlackjackAction.Surrender:
+            if not Ruleset.rules().get("late_surrender"):
+                raise RuntimeError("Late Surrender is not Allowed!")
+            player.add_money(hand.bet / 2)
+            print(f"Surrendered! +{hand.bet / 2}")
         else:
             raise RuntimeError("Dunno how to handle this Action")
 
-    def payout(
-        self,
-        hands: List[Tuple[Player, BlackjackHand]],
-        dealer_hand: BlackjackHand,
-        blackjack_pays_2_to_1=True,
-    ):
+    def payout(self, hands: List[Tuple[Player, BlackjackHand]], dealer_hand: BlackjackHand):
         dealer_total = dealer_hand.get_hand_total()
 
         print("\nResults:")
@@ -127,11 +127,14 @@ class GameDriver:
                     hand_summary.append(-1 * hand.bet)
                 elif hand.is_blackjack():
                     hand_summary.append("Blackjack")
-                    hand_summary.append(
-                        (1.5 if blackjack_pays_2_to_1 else 1.2) * hand.bet
-                    )
+                    blackjack_win = (
+                        1.5 if Ruleset.rules().get("blackjack_pays_3_to_2", False) else 1.2
+                    ) * hand.bet
+                    hand_summary.append(blackjack_win)
+                    player.add_money(blackjack_win + hand.bet)
+
                 elif dealer_total > 21:
-                    player.add_money(hand.bet * 2)
+                    player.add_money(hand.bet * 2)  # original and winnings
                     hand_summary.append("Dealer Busted!")
                     hand_summary.append(hand.bet)
 
@@ -139,7 +142,7 @@ class GameDriver:
                     hand_summary.append("Dealer wins")
                     hand_summary.append(-1 * hand.bet)
                 elif player_total > dealer_total:
-                    player.add_money(hand.bet * 2)  # All payments are 2:1 in blackjack
+                    player.add_money(hand.bet * 2)
                     hand_summary.append("In the money")
                     hand_summary.append(hand.bet)
                 elif player_total == dealer_total:

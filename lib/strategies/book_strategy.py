@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numpy import true_divide
 from lib.strategies.i_strategy import IStrategy
 from lib.cards.blackjack_hand import BlackjackHand
 from lib.game.blackjack_action import BlackjackAction
@@ -43,9 +42,7 @@ class BookStrategy(IStrategy):
         df.loc[df.index.isin([10, 11])] = BlackjackAction.Double
         df.loc[10, list(range(10, 15))] = BlackjackAction.Hit
         df.loc[11, CardValue.Ace] = BlackjackAction.Hit
-        df.loc[
-            (df.index >= 12) & (df.index <= 15), list(range(7, 15))
-        ] = BlackjackAction.Hit
+        df.loc[(df.index >= 12) & (df.index <= 15), list(range(7, 15))] = BlackjackAction.Hit
 
         return df
 

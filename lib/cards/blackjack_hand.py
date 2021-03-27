@@ -17,13 +17,14 @@ class InvalidCard(RuntimeError):
 
 
 class BlackjackHand:
-    def __init__(self, cards: List[Card], bet=10, locked=False):
+    def __init__(self, cards: List[Card], bet=10, locked=False, from_split=False):
         self.cards = cards
         self.showing_card = None
         if len(cards) == 2:
             self.showing_card = cards[1]
         self.locked = locked
         self.bet = bet
+        self._from_split = from_split
 
     @classmethod
     def split_hand(cls, hand):
@@ -31,7 +32,7 @@ class BlackjackHand:
             raise CantSplitAnythingBut2CardsBro()
 
         # Can't resplit Aces?
-        return cls([hand.cards[0]], hand.bet), cls([hand.cards[1]], hand.bet)
+        return cls([hand.cards[0]], hand.bet, from_split=True), cls([hand.cards[1]], hand.bet, from_split=True)
 
     @classmethod
     def from_string(cls, comma_seperated_cards: str):
@@ -60,6 +61,11 @@ class BlackjackHand:
         if len(self.cards) != 2:
             return False
         return self.cards[0].value == self.cards[1].value
+    
+    def is_surrenderable(self):
+        if len(self.cards) == 2 and not self._from_split:
+            return True
+        return False
 
     def is_busted(self):
         return len(self.get_valid_values()) == 0
